@@ -189,6 +189,7 @@ static const PreferredContentSize s_platform_default_content_sizes[] = {
   [PlatformTypeChalk] = PreferredContentSizeMedium,
   [PlatformTypeDiorite] = PreferredContentSizeMedium,
   [PlatformTypeEmery] = PreferredContentSizeLarge,
+  [PlatformTypeKnight] = PreferredContentSizeLarge,
 };
 
 T_STATIC PreferredContentSize prv_convert_content_size_between_platforms(PreferredContentSize size,

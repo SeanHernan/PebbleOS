@@ -22,7 +22,7 @@ typedef enum PlatformType {
   PlatformTypeChalk,
   PlatformTypeDiorite,
   PlatformTypeEmery,
-  PlatformTypeHollow
+  PlatformTypeKnight
 } PlatformType;
 
 // Unit tests and the firmware don't define the SDK platform defines because reasons.
@@ -39,7 +39,7 @@ typedef enum PlatformType {
   #elif PLATFORM_ROBERT || PLATFORM_CALCULUS || PLATFORM_OBELIX
     #define PBL_PLATFORM_TYPE_CURRENT PlatformTypeEmery
   #elif PLATFORM_HOLLOW
-    #define PBL_PLATFORM_TYPE_CURRENT PlatformTypeHollow
+    #define PBL_PLATFORM_TYPE_CURRENT PlatformTypeKnight
   #else
     #error "PBL_PLATFORM_TYPE_CURRENT couldn't be determined: No PLATFORM_* defined!"
   #endif
@@ -55,7 +55,7 @@ typedef enum PlatformType {
   #elif PBL_PLATFORM_EMERY
     #define PBL_PLATFORM_TYPE_CURRENT PlatformTypeEmery
   #elif PLATFORM_HOLLOW
-    #define PBL_PLATFORM_TYPE_CURRENT PlatformTypeHollow
+    #define PBL_PLATFORM_TYPE_CURRENT PlatformTypeKnight
   #else
     #error "PBL_PLATFORM_TYPE_CURRENT couldn't be determined: No PBL_PLATFORM_* defined!"
   #endif

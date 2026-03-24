@@ -41,328 +41,11 @@
 #define DISP_MODE_WRITE 0x01U
 #define DISP_MODE_CLEAR 0x04U
 
-static uint8_t s_buf[2 + ((DISP_LINE_BYTES + 2) * PBL_DISPLAY_HEIGHT)];
+static uint8_t s_buf[5 + (PBL_DISPLAY_HEIGHT*280)];
 static bool s_updating;
+static bool s_updating_public;
 static UpdateCompleteCallback s_uccb;
 static SemaphoreHandle_t s_sem;
-
-// s1d13c00 specific defines...
-#define READ 0x03
-#define FASTREAD 0x0B
-#define PAGEPROG 0x02
-
-#define RAM_START (0x20000000)
-#define RAM_END (0x20017fff)
-
-// System Control
-#define SYSCTRL (0x400030e0)
-#define RESET ((0x1) << 15)
-#define IOSC_TRIM ((0x24) << 8) // original trim was 0x9s
-#define INT_POL ((0x1) << 4)
-#define IOSC_STABLE ((0x1) << 3) // (read only)
-#define IOSC_8MHZ ((0x0) << 1)
-#define IOSC_12MHZ ((0x1) << 1)
-#define IOSC_16MHZ ((0x2) << 1)
-#define IOSC_20MHZ ((0x3) << 1)
-#define START_IOSC ((0x1) << 0)
-
-// System Interrupts Status
-#define SYSINTS (0x400030e4)
-
-// System Protection
-#define SYSPROT (0x40000000)
-#define PROT_EN (0x0000)
-#define PROT_DIS (0x0096)
-
-// Oscillation Control
-#define CLGOSC (0x40000042)
-#define OSC1_EN ((0x1) << 1)
-#define OSC1_DIS ((0x0) << 1)
-
-// OSC1 Control
-#define CLGOSC1 (0x40000046)
-#define OSDRB ((0x1) << 14)
-#define OSDEN ((0x1) << 13)
-#define OSC1BUP ((0x1) << 12)
-#define OSC1SELCR_EXT ((0x0) << 11)
-#define OSC1SELCR_IN ((0x1) << 11)
-#define INVIB ((0x2) << 6)
-#define INVIN ((0x1) << 4)
-#define OSC1WT ((0x2) << 0)
-
-// CLG Interrupt flag
-#define CLGINTF (0x4000004c)
-#define OSC1STAIF ((0x1) << 1)
-#define OSC1STPIF ((0x1) << 5)
-
-// CLG Interrupt flag
-#define CLGINTE (0x4000004e)
-#define OSC1STAIE ((0x1) << 1)
-#define OSC1STPIE ((0x1) << 5)
-
-// OSC1 Internal Trimming
-#define GCLGOSC1TRM (0x40000054)
-#define OSC1_TRIM (0x0022)
-
-// MDC Voltage Booster/Regulator clock control
-#define MDCBSTCLK (0x40003080)
-#define SCRATCHPAD_BIT0 ((0x1) << 7)
-#define CLKDIV ((0x5) << 4)
-#define CLKSRC_OSC1 ((0x1) << 0)
-#define CLKSRC_IOSC ((0x0) << 0)
-
-// MDC Power Output control
-#define MDCBSTPWR (0x40003084)
-#define VMDBUP ((0x1) << 3)
-#define BSTON ((0x1) << 2)
-#define REGECO ((0x1) << 1)
-#define REGON ((0x1) << 0)
-
-// MDC Voltage Booster/Regulator VMD Output Control
-#define MDCBSTVMD (0x40003088)
-#define VMDHVOL_5V0 ((0x7) << 12)
-#define VMDHVOL_4V5 ((0x2) << 12)
-#define VMDHON ((0x1) << 8)
-#define VMDLVOL_3V2 ((0x4) << 4)
-#define VMDLON ((0x1) << 0)
-
-
-// MDC Display Control
-#define MDCDISPCTL (0x40003000)
-#define DISPGS_0 ((0x0) << 11)
-#define DISPINVERT ((0x1) << 7)
-#define DISPSPI_0 ((0x0) << 4)
-#define ROTSEL_270 ((0x3) << 2)
-#define ROTSEL_180 ((0x2) << 2)
-#define ROTSEL_90 ((0x1) << 2)
-#define ROTSEL_NONE ((0x0) << 2)
-#define VCOMEN ((0x1) << 1)
-#define DISPEPD_0 ((0x0) << 0)
-
-// MDC Display Width
-#define MDCDISPWIDTH (0x40003002)
-
-// MDC Display height
-#define MDCDISPHEIGHT (0x40003004)
-
-// MDC VCOM clock divider
-#define MDCDISPVCOMDIV (0x40003006)
-
-// MDC Display clock divider
-#define MDCDISPCLKDIV (0x40003008)
-
-// MDC Display paramters 1 and 2
-#define MDCDISPPRM21 (0x4000300a)
-
-// MDC Display paramters 3 and 4
-#define MDCDISPPRM43 (0x4000300c)
-
-// MDC Display paramters 5 and 6
-#define MDCDISPPRM65 (0x4000300e)
-
-// MDC Display paramters 7 and 8
-#define MDCDISPPRM87 (0x40003010)
-
-// MDC Display update start line
-#define MDCDISPSTARTY (0x40003012)
-
-// MDC Display update start line
-#define MDCDISPENDY (0x40003014)
-
-// MDC Display stride
-#define MDCDISPSTRIDE (0x40003016)
-
-// MDC Display frame buffer base address 0
-#define MDCDISPFRMBUFF0 (0x40003018)
-
-// MDC Display frame buffer base address 1
-#define MDCDISPFRMBUFF1 (0x4000301a)
-
-// MDC Trigger control
-#define MDCTRIGCTL (0x4000301c)
-#define UPDTRIG ((0x1) << 1)
-#define GFXTRIG ((0x1) << 0)
-
-// MDC Interrupt control
-#define MDCINTCTL (0x4000301e)
-#define VCNTIE ((0x1) << 10)
-#define UPDIE ((0x1) << 9)
-#define GFXIE ((0x10) << 8)
-#define VCNTIF ((0x1) << 2)
-#define UPDIF ((0x1) << 1)
-#define GFXIF ((0x1) << 1)
-
-// MDC Graphics control
-#define MDCGFXCTL (0x40003020)
-
-// MDC Input X coordinate
-#define MDCGFXIXCENTER (0x40003022)
-
-// MDC Input Y coordinate
-#define MDCGFXIYCENTER (0x40003024)
-
-// MDC Input width
-#define MDCGFXIWIDTH (0x40003026)
-
-// MDC Input height
-#define MDCGFXIHEIGHT (0x40003028)
-
-// MDC Output X coordinate
-#define MDCGFXOXCENTER (0x4000302a)
-
-// MDC Output Y coordinate
-#define MDCGFXOYCENTER (0x4000302c)
-
-// MDC Output width
-#define MDCGFXOWIDTH (0x4000302e)
-
-// MDC Output height
-#define MDCGFXOHEIGHT (0x40003030)
-
-// MDC Input height
-#define MDCGFXIHEIGHT (0x40003028)
-
-// MDC X Left scale
-#define MDCGFXXLSCALE (0x40003032)
-
-// MDC X Right scale
-#define MDCGFXXRSCALE (0x40003034)
-
-// MDC Y Top scale
-#define MDCGFXXYTSCALE (0x40003036)
-
-// MDC Y Bottom scale
-#define MDCGFXXYBSCALE (0x40003038)
-
-// MDC X/Y Shear
-#define MDCGFXSHEAR (0x4000303a)
-
-// MDC Rotation
-#define MDCGFXROTVAL (0x4000303c)
-
-// MDC Colour
-#define MDCGFXCOLOR (0x4000303e)
-
-// MDC Source window base address 0
-#define MDCGFXIBADDR0 (0x40003040)
-
-// MDC Source window base address 1
-#define MDCGFXIBADDR1 (0x40003042)
-
-// MDC Destination window base address 0
-#define MDCGFXOBADDR0 (0x40003044)
-
-// MDC Destination window base address 1
-#define MDCGFXOBADDR1 (0x40003046)
-
-// MDC Source Image stride
-#define MDCGFXISTRIDE (0x40003048)
-
-// MDC Destination Image stride
-#define MDCGFXOSTRIDE (0x4000304a)
-
-// MDC Output window left edge
-#define MDCGFXOWLEFT (0x4000304c)
-
-// MDC Output window right edge
-#define MDCGFXOWRIGHT (0x4000304e)
-
-// MDC Output window top edge
-#define MDCGFXOWTOP (0x40003050)
-
-// MDC Output window bottom edge
-#define MDCGFXOWBOT (0x40003052)
-
-// MDC Display paramters 9 and 10
-#define MDCDISPPRM109 (0x40003054)
-
-// MDC Display paramters 11 and 12
-#define MDCDISPPRM1211 (0x40003056)
-
-// MDC Display paramters 13 and 14
-#define MDCDISPPRM1413 (0x40003058)
-
-// MDC Display control 2
-#define MDCDISPCTL2 (0x4000305a)
-#define GSALPHA ((0x1) << 5)
-#define CSPOL ((0x1) << 4)
-#define VSTFALL ((0x1) << 3)
-#define HSTFALL ((0x1) << 2)
-#define ENBPHASE ((0x1) << 1)
-#define FASTVCK ((0x1) << 0)
-
-// MDC VCK count compare
-#define MDCVCNTCOMP (0x4000305c)
-
-// MDC VCK count
-#define MDCVCNT (0x4000305e)
-
-
-// MCD VCOM Clock control register
-#define MDCVCOMCLKCTL (0x40003068)
-
-// MDC Voltage Booster/regulator VMD output control
-#define MDCBSTTVMD (0x40003088)
-
-
-static uint8_t out_buf[32];
-static uint8_t in_buf[32];
-
-void prv_display_clear(uint8_t colour);
-void prv_update_command();
-uint16_t prv_read(unsigned long address);
-void prv_write(unsigned long address, uint16_t value);
-
-// static void prv_extcomin_init(void) {
-//   nrfx_err_t err;
-//   const NrfLowPowerPWM *extcomin = &BOARD_CONFIG_DISPLAY.extcomin;
-//   uint32_t evt_addr, task_addr;
-//   uint8_t ppi_ch[2];
-
-//   nrf_gpiote_te_default(extcomin->gpiote, extcomin->gpiote_ch);
-
-//   nrf_gpio_pin_write(extcomin->psel, 0);
-//   nrf_gpio_cfg_output(extcomin->psel);
-
-//   // RTC: CC0 is the period end, CC1 is the pulse end
-//   nrf_rtc_task_trigger(extcomin->rtc, NRF_RTC_TASK_STOP);
-//   nrf_rtc_event_clear(extcomin->rtc, nrf_rtc_compare_event_get(0));
-//   nrf_rtc_event_clear(extcomin->rtc, nrf_rtc_compare_event_get(1));
-//   nrf_rtc_task_trigger(extcomin->rtc, NRF_RTC_TASK_CLEAR);
-//   nrf_rtc_prescaler_set(extcomin->rtc, NRF_RTC_FREQ_TO_PRESCALER(32768));
-//   nrf_rtc_event_enable(extcomin->rtc, (NRF_RTC_INT_COMPARE0_MASK | NRF_RTC_INT_COMPARE1_MASK));
-//   nrf_rtc_cc_set(extcomin->rtc, 0, (32768 * extcomin->period_us) / 1000000 - 1);
-//   nrf_rtc_cc_set(extcomin->rtc, 1, (32768 * extcomin->pulse_us) / 1000000 - 1);
-
-//   nrf_gpiote_task_configure(extcomin->gpiote, extcomin->gpiote_ch, extcomin->psel,
-//                             NRF_GPIOTE_POLARITY_NONE, NRF_GPIOTE_INITIAL_VALUE_LOW);
-//   nrf_gpiote_task_enable(extcomin->gpiote, extcomin->gpiote_ch);
-
-//   err = nrfx_gppi_channel_alloc(&ppi_ch[0]);
-//   PBL_ASSERTN(err == NRFX_SUCCESS);
-
-//   err = nrfx_gppi_channel_alloc(&ppi_ch[1]);
-//   PBL_ASSERTN(err == NRFX_SUCCESS);
-
-//   // Period end (CC0) sets GPIO, clears RTC
-//   evt_addr = nrf_rtc_event_address_get(extcomin->rtc, nrf_rtc_compare_event_get(0));
-//   task_addr =
-//       nrf_gpiote_task_address_get(extcomin->gpiote, nrf_gpiote_set_task_get(extcomin->gpiote_ch));
-//   nrfx_gppi_channel_endpoints_setup(ppi_ch[0], evt_addr, task_addr);
-
-//   task_addr = nrf_rtc_event_address_get(extcomin->rtc, NRF_RTC_TASK_CLEAR);
-//   nrfx_gppi_fork_endpoint_setup(ppi_ch[0], task_addr);
-
-//   // Pulse end (CC1) clears GPIO
-//   evt_addr = nrf_rtc_event_address_get(extcomin->rtc, nrf_rtc_compare_event_get(1));
-//   task_addr =
-//       nrf_gpiote_task_address_get(extcomin->gpiote, nrf_gpiote_clr_task_get(extcomin->gpiote_ch));
-//   nrfx_gppi_channel_endpoints_setup(ppi_ch[1], evt_addr, task_addr);
-
-//   nrfx_gppi_channels_enable((1UL << ppi_ch[0]) | (1UL << ppi_ch[1]));
-
-//   nrf_rtc_task_trigger(extcomin->rtc, NRF_RTC_TASK_START);
-// }
 
 static inline void prv_enable_spim(void) {
   nrf_spim_enable(BOARD_CONFIG_DISPLAY.spi.p_reg);
@@ -385,8 +68,31 @@ static inline void prv_disable_chip_select(void) {
   gpio_output_set(&BOARD_CONFIG_DISPLAY.cs, true);
 }
 
+void prv_iosc_enable(bool en) {
+  if (!en) {
+    prv_write(SYSCTRL, IOSC_TRIM+INT_POL+IOSC_20MHZ); // active low interrupt
+    // no wait
+
+  } else {
+    prv_write(SYSCTRL, IOSC_TRIM+INT_POL+IOSC_20MHZ+START_IOSC); // active low interrupt
+    
+    // poll IOSC for stability
+    uint16_t sysctrl;
+    for(uint8_t i=0; i<10; i++) { // max of 5 ms
+      sysctrl = prv_read(SYSCTRL);;
+
+      if ((sysctrl & IOSC_STABLE) == IOSC_STABLE) {
+        break;
+      } else {
+        psleep(0.5);
+      }
+    }
+  }
+}
+
 static void prv_terminate_transfer(void *data) {
   s_updating = false;
+  s_updating_public = false;
 
   prv_disable_chip_select();
   prv_disable_spim();
@@ -425,7 +131,7 @@ void display_init(void) {
   nrfx_spim_config_t config = NRFX_SPIM_DEFAULT_CONFIG(
       BOARD_CONFIG_DISPLAY.clk.gpio_pin, BOARD_CONFIG_DISPLAY.mosi.gpio_pin,
       BOARD_CONFIG_DISPLAY.miso.gpio_pin, NRF_SPIM_PIN_NOT_CONNECTED);
-  config.frequency = NRFX_MHZ_TO_HZ(.5);
+  config.frequency = NRFX_MHZ_TO_HZ(1);
   config.bit_order = NRF_SPIM_BIT_ORDER_MSB_FIRST;
 
   nrfx_err_t err = nrfx_spim_init(&BOARD_CONFIG_DISPLAY.spi, &config, prv_spim_evt_handler, NULL);
@@ -498,8 +204,8 @@ void display_init(void) {
   psleep(1); // sleep 1 ms
   
   // display config (Sharp LS014B7DD01) (16 MHz clock as 20 MHz wouldn't work)
-  prv_write(MDCDISPVCOMDIV, 266); // VCOM freq=32000/(4*(273+1))=~30Hz... Transmissive mode
-  prv_write(MDCDISPCTL, DISPGS_0+DISPINVERT+DISPSPI_0+ROTSEL_NONE+DISPEPD_0); // review + #define...
+  prv_write(MDCDISPVCOMDIV, 133); // VCOM freq=32000/(4*(273+1))=~30Hz... Reflective mode
+  prv_write(MDCDISPCTL, DISPGS_0+DISPSPI_0+ROTSEL_NONE+DISPEPD_0); // review + #define...
   // prv_write(MDCDISPCTL, DISPGS_0+DISPINVERT+DISPSPI_0+ROTSEL_NONE+VCOMEN+DISPEPD_0);
   prv_write(MDCDISPCTL2, 0x0);
   prv_write(MDCDISPCLKDIV, ((0) << 8)+((3) << 1)); // t0 = tsGCK2 = (6+1) T = 350 ns, T = (1)/(20 MHz) ~= 187.5 ns
@@ -552,11 +258,31 @@ void display_init(void) {
   psleep(1);
   
   // enable VCOM, VB, VA
-  prv_write(MDCDISPCTL, DISPGS_0+DISPINVERT+DISPSPI_0+ROTSEL_NONE+VCOMEN+DISPEPD_0);
-
-  // print screen purple
-  prv_display_clear(0xf3);
+  prv_write(MDCDISPCTL, DISPGS_0+DISPSPI_0+ROTSEL_NONE+VCOMEN+DISPEPD_0);
+  
+  // print screen red
+  prv_iosc_enable(true); // enable IOSC
+  prv_display_set(0xf0);
   prv_update_command();
+  prv_iosc_enable(false); // disable IOSC
+
+  // print screen green
+  prv_iosc_enable(true);
+  prv_display_set(0xcc);
+  prv_update_command();
+  prv_iosc_enable(false);
+
+  // print screen blue
+  prv_iosc_enable(true);
+  prv_display_set(0xc3);
+  prv_update_command();
+  prv_iosc_enable(false);
+
+  // wipe screen
+  prv_iosc_enable(true);
+  display_clear();
+  prv_update_command();
+  prv_iosc_enable(false);
 
   stable = prv_read(SYSCTRL) & IOSC_STABLE;
   if(stable == 0) {
@@ -606,7 +332,7 @@ void display_clear() {
   prv_write(MDCINTCTL, intctl|(GFXIE+GFXIF)); // clear interrupt
 }
 
-void prv_display_clear(uint8_t colour) {
+void prv_display_set(uint8_t colour) {
 
   PBL_ASSERTN(!s_updating);
 
@@ -650,7 +376,7 @@ void display_set_enabled(bool enabled) {
   // gpio_output_set(&BOARD_CONFIG_DISPLAY.on_ctrl, enabled);
 }
 
-void prv_update_command() {
+void prv_update_command(void) {
   // ## Tell the driver IC to update the display
 
   uint16_t pwr = prv_read(MDCBSTPWR);
@@ -667,7 +393,7 @@ void prv_update_command() {
   for(uint8_t i=0; i<25; i++) {
     trig = prv_read(MDCTRIGCTL);
 
-    if ((trig && UPDTRIG) == 0) {
+    if ((trig & UPDTRIG) == 0) {
       break; // display update finished...
     } else {
       psleep(10);
@@ -680,7 +406,6 @@ void prv_update_command() {
 
   pwr = prv_read(MDCBSTPWR);
   prv_write(MDCBSTPWR, (BSTON+REGECO+REGON)); // turn on economy mode
-
 }
 
 void display_update(NextRowCallback nrcb, UpdateCompleteCallback uccb) {
@@ -691,38 +416,43 @@ void display_update(NextRowCallback nrcb, UpdateCompleteCallback uccb) {
   PBL_ASSERTN(!s_updating);
 
   // ## Fill the memory buffer on driver IC
-  // write command (write)
-  *pbuf++ = PAGEPROG;
-  *pbuf++ = (RAM_START >> 24) & 0xff;
-  *pbuf++ = (RAM_START >> 16) & 0xff;
-  *pbuf++ = (RAM_START >> 8)  & 0xff;
-  *pbuf++ = RAM_START & 0xff;
+  *pbuf++ = PAGEPROG_CMD; // write command
+  *pbuf++ = (RAM_OFFSET >> 24) & 0xff; 
+  *pbuf++ = (RAM_OFFSET >> 16) & 0xff;
+  *pbuf++ = (RAM_OFFSET >> 8)  & 0xff;
+  *pbuf++ = RAM_OFFSET & 0xff;
   desc.tx_length += 5; // 1 command byte + 4 address bytes
 
   while (nrcb(&row)) {
-    // write row address, data and trailing dummy
-    // *pbuf++ = row.address + 1;
-    memcpy(pbuf, row.data, DISP_LINE_BYTES);
-    // pbuf += DISP_LINE_BYTES;
-    // *pbuf++ = 0x00;
+    //pad with leading zeros (280-200)/2 = 40
+    memset(pbuf, 0, 40);
+    pbuf+=40;
 
-    // desc.tx_length += DISP_LINE_BYTES + 2;
-    desc.tx_length += DISP_LINE_BYTES;
+    // write row data
+    memcpy(pbuf, row.data, PBL_DISPLAY_WIDTH);
+    pbuf+=PBL_DISPLAY_WIDTH;
+    
+    // pad with trailing zeros
+    memset(pbuf, 0, 40);
+    pbuf+=40;
+
+    desc.tx_length += 280; // add length of row
   }
 
   // write last trailing dummy
   // *pbuf++ = 0x00;
-  desc.tx_length++;
+  // desc.tx_length++;
 
   prv_read(SYSCTRL);
   prv_read(SYSINTS);
 
+  s_updating_public=true;
+
+  prv_iosc_enable(true); // enable IOSC
   prv_enable_spim();
   prv_disable_chip_select();
   prv_enable_chip_select();
   
-  // s_uccb = uccb;
-  // s_updating = true;
   nrfx_err_t err = nrfx_spim_xfer(&BOARD_CONFIG_DISPLAY.spi, &desc, 0);
   PBL_ASSERTN(err == NRFX_SUCCESS);
   xSemaphoreTake(s_sem, portMAX_DELAY);
@@ -730,17 +460,34 @@ void display_update(NextRowCallback nrcb, UpdateCompleteCallback uccb) {
   prv_disable_chip_select();
   prv_disable_spim();
 
+  
   prv_update_command();
+  prv_iosc_enable(false); // disable IOSC
+
+  s_uccb = uccb;
+  s_updating = true;
+  // dummy read to grab callback...
+  // FIXME: this is disgusting
+  out_buf[0]  = READ_CMD;
+  out_buf[1]  = (SYSCTRL >> 24) & 0xff;
+  out_buf[2]  = (SYSCTRL >> 16) & 0xff;
+  out_buf[3]  = (SYSCTRL >> 8)  & 0xff;
+  out_buf[4]  = SYSCTRL & 0xff;
+  out_buf[5]  = 0x00; // 1 byte dummy read
+  out_buf[6]  = 0x00; // 1 byte actual read
+  out_buf[7]  = 0x00; // 1 byte actual read
+  err = nrfx_spim_xfer(&BOARD_CONFIG_DISPLAY.spi, &(nrfx_spim_xfer_desc_t){.p_tx_buffer = &out_buf[0], .tx_length = 8,.p_rx_buffer = in_buf, .rx_length = 8}, 0);
+  PBL_ASSERTN(err == NRFX_SUCCESS); // for arguments sake
 }
 
 bool display_update_in_progress(void) {
-  return s_updating;
+  return s_updating_public;
 }
 
 // (cmd[7:0]) (addr[31:0]) (data[7:0])...
 
 // 16 bit addressing/registers
-uint16_t prv_read(unsigned long address) {
+uint16_t prv_read(uint32_t address) {
 
   size_t len = 8;
   uint8_t *bob = out_buf;
@@ -748,14 +495,14 @@ uint16_t prv_read(unsigned long address) {
   uint8_t *in = in_buf;
 
   // build the frame
-  *bob++ = READ; // cmd
+  *bob++ = READ_CMD;
   *bob++ = (address >> 24) & 0xff;
   *bob++ = (address >> 16) & 0xff;
   *bob++ = (address >> 8)  & 0xff;
   *bob++ = address & 0xff;
   *bob++ = 0x00; // 1 byte dummy read
-  *bob++ = 0x00; // 1 byte actual read (still dummy data)
-  *bob++ = 0x00; //1 byte actual read (still dummy data)
+  *bob++ = 0x00; // 1 byte actual read
+  *bob++ = 0x00; // 1 byte actual read
   // total read of 2 bytes (16 bit reg)
 
   nrfx_spim_xfer_desc_t xfer;
@@ -779,7 +526,7 @@ uint16_t prv_read(unsigned long address) {
 
 
 // TODO: burst write... don't have time now :(
-void prv_write(unsigned long address, uint16_t value) {
+void prv_write(uint32_t address, uint16_t value) {
 
   size_t len = 7;
   uint8_t *bob = out_buf;
@@ -787,7 +534,7 @@ void prv_write(unsigned long address, uint16_t value) {
   uint8_t *in = in_buf;
 
   // build the frame
-  *bob++ = PAGEPROG; // cmd
+  *bob++ = PAGEPROG_CMD;
   *bob++ = (address >> 24) & 0xff;
   *bob++ = (address >> 16) & 0xff;
   *bob++ = (address >> 8)  & 0xff;

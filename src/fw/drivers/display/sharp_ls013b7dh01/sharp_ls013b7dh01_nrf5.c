@@ -202,7 +202,7 @@ void display_update(NextRowCallback nrcb, UpdateCompleteCallback uccb) {
   while (nrcb(&row)) {
     // write row address, data and trailing dummy
     *pbuf++ = row.address + 1;
-    memcpy(pbuf, row.data, DISP_LINE_BYTES);
+    memcpy(pbuf, row.data, 228);
     pbuf += DISP_LINE_BYTES;
     *pbuf++ = 0x00;
 

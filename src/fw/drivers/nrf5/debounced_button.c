@@ -117,7 +117,7 @@ void debounced_button_init(void) {
   }
 }
 
-
+static uint32_t s_counter = 0;
 // Interrupt Service Routines
 ///////////////////////////////////////////////////////////
 static void prv_timer_handler(nrf_timer_event_t evt, void *ctx) {
@@ -134,6 +134,9 @@ static void prv_timer_handler(nrf_timer_event_t evt, void *ctx) {
 
   // We handle all 4 buttons every time this interrupt is fired.
   for (int i = 0; i < NUM_BUTTONS; ++i) {
+    if (s_counter > 0) {
+      s_counter--;
+    }
     // What stable state is the button in, according to the debouncing algorithm?
     bool debounced_button_state = bitset32_get(&s_debounced_button_state, i);
     // What is the current physical state of the button?
@@ -162,11 +165,13 @@ static void prv_timer_handler(nrf_timer_event_t evt, void *ctx) {
         clear_stuck_button(i);
       }
 
-      PebbleEvent e = {
-        .type = (is_pressed) ? PEBBLE_BUTTON_DOWN_EVENT : PEBBLE_BUTTON_UP_EVENT,
-        .button.button_id = i
-      };
-      should_context_switch = event_put_isr(&e);
+      if (s_counter == 0) {
+        PebbleEvent e = {
+          .type = (is_pressed) ? PEBBLE_BUTTON_DOWN_EVENT : PEBBLE_BUTTON_UP_EVENT,
+          .button.button_id = i
+        };
+        should_context_switch = event_put_isr(&e);
+      }
     }
   }
 

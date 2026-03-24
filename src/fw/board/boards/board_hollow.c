@@ -57,6 +57,7 @@ QSPIFlash *const QSPI_FLASH = &QSPI_FLASH_DEVICE;
 IRQ_MAP_NRFX(QSPI, nrfx_qspi_irq_handler);
 /* PERIPHERAL ID 43 */
 
+#if defined(PBL_LOG_ENABLED)
 static UARTDeviceState s_dbg_uart_state;
 static UARTDevice DBG_UART_DEVICE = {
     .state = &s_dbg_uart_state,
@@ -70,6 +71,22 @@ static UARTDevice DBG_UART_DEVICE = {
 UARTDevice *const DBG_UART = &DBG_UART_DEVICE;
 IRQ_MAP_NRFX(SERIAL0, nrfx_uarte_0_irq_handler);
 /* PERIPHERAL ID 8 */
+#else
+// stupid way of getting rid of dbg uart, should cause no errors hopefully??
+static UARTDeviceState s_dbg_uart_state;
+static UARTDevice DBG_UART_DEVICE = {
+    .state = &s_dbg_uart_state,
+    .tx_gpio = NRF_UARTE_PSEL_DISCONNECTED,
+    .rx_gpio = NRF_UARTE_PSEL_DISCONNECTED,
+    .rts_gpio = NRF_UARTE_PSEL_DISCONNECTED,
+    .cts_gpio = NRF_UARTE_PSEL_DISCONNECTED,
+    .periph = NRFX_UARTE_INSTANCE(0),
+    .counter = NRFX_TIMER_INSTANCE(2),
+};
+UARTDevice *const DBG_UART = &DBG_UART_DEVICE;
+IRQ_MAP_NRFX(SERIAL0, nrfx_uarte_0_irq_handler);
+/* PERIPHERAL ID 8 */
+#endif
 
 /* buttons */
 IRQ_MAP_NRFX(TIMER1, nrfx_timer_1_irq_handler);

@@ -52,7 +52,7 @@ static QueueHandle_t s_from_kernel_event_queue = NULL;
 static QueueSetHandle_t s_system_event_queue_set = NULL;
 
 static const int MAX_KERNEL_EVENTS = 32;
-static const int MAX_FROM_APP_EVENTS = 10;
+static const int MAX_FROM_APP_EVENTS = 20;
 static const int MAX_FROM_WORKER_EVENTS = 5;
 static const int MAX_FROM_KERNEL_MAIN_EVENTS = 14;
 

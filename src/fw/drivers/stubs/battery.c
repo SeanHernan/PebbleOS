@@ -24,11 +24,11 @@ int battery_charge_status_get(BatteryChargeStatus *status) {
 }
 
 bool battery_charge_controller_thinks_we_are_charging_impl(void) {
-  return 1;
+  return 0;
 }
 
 bool battery_is_usb_connected_impl(void) {
-  return 1;
+  return 0;
 }
 
 void battery_set_charge_enable(bool charging_enabled) {
@@ -42,9 +42,9 @@ void battery_force_charge_enable(bool charging_enabled) {
 }
 
 bool battery_is_usb_connected(void) {
-  return 1;
+  return 0;
 }
 
 bool battery_charge_controller_thinks_we_are_charging(void) {
-  return 1;
+  return 0;
 }

@@ -93,7 +93,7 @@ static bool prv_dispatch_event(ClickRecognizer *recognizer, ClickHandlerOffset h
 }
 
 inline static bool prv_is_hold_to_repeat_enabled(ClickRecognizer *recognizer) {
-  return (recognizer->config.click.repeat_interval_ms >= 30);
+  return (recognizer->config.click.repeat_interval_ms >= 200);
 }
 
 inline static bool prv_is_multi_click_enabled(ClickRecognizer *recognizer) {

@@ -119,10 +119,6 @@
       "type": "png",
       "name": "QUIET_TIME_ACTIVE",
       "file": "normal/snowy/images/quiet_time_active.png"
-    },      
-    { "type": "pdc",
-      "name": "QUIET_TIME_MOUSE_RIGHT_ALIGNED",
-      "file": "normal/spalding/images/Pebble_80x80_Quiet_time_mouse_right_aligned.svg"
     },
     {
       "type": "png",
@@ -346,20 +342,20 @@
     },
     {
       "type": "font",
-      "name": "AGENCY_FB_36_NUMBERS_AM_PM",
-      "file": "normal/base/pbf/AGENCY_FB_36_NUMBERS_AM_PM.pbf",
+      "name": "AGENCY_FB_46_NUMBERS_AM_PM",
+      "file": "normal/base/pbf/AGENCY_FB_46_NUMBERS_AM_PM.pbf",
+      "characterRegex": "[ 0-9:/.,°ABPMHIK\\+\\-\\%]"
+    },
+    {
+      "type": "font",
+      "name": "AGENCY_FB_88_NUMBERS_AM_PM",
+      "file": "normal/base/pbf/AGENCY_FB_88_NUMBERS_AM_PM.pbf",
       "characterRegex": "[ 0-9:/.,°APMHIK\\+\\-\\%]"
     },
     {
       "type": "font",
-      "name": "AGENCY_FB_60_NUMBERS_AM_PM",
-      "file": "normal/base/pbf/AGENCY_FB_60_NUMBERS_AM_PM.pbf",
-      "characterRegex": "[ 0-9:/.,°APMHIK\\+\\-\\%]"
-    },
-    {
-      "type": "font",
-      "name": "AGENCY_FB_60_THIN_NUMBERS_AM_PM",
-      "file": "normal/base/pbf/AGENCY_FB_60_THIN_NUMBERS_AM_PM.pbf",
+      "name": "AGENCY_FB_88_THIN_NUMBERS_AM_PM",
+      "file": "normal/base/pbf/AGENCY_FB_88_THIN_NUMBERS_AM_PM.pbf",
       "characterRegex": "[ 0-9:/.,°APMHIK\\+\\-\\%]"
     },
     {

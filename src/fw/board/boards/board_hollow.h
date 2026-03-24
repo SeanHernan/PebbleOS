@@ -19,7 +19,7 @@ static const BoardConfig BOARD_CONFIG = {
 
   .backlight_on_percent = 25,
   .backlight_max_duty_cycle_percent = 67,
-  
+
   .dbgserial_int = {
     .peripheral = NRFX_GPIOTE_INSTANCE(0), 
     .channel = 0,
@@ -35,13 +35,13 @@ static const BoardConfig BOARD_CONFIG = {
 static const BoardConfigButton BOARD_CONFIG_BUTTON = {
   .buttons = {
     [BUTTON_ID_BACK] =
-        { "Back",   { NRFX_GPIOTE_INSTANCE(0), 2, NRF_GPIO_PIN_MAP(0, 26) }, NRF_GPIO_PIN_PULLUP },
+        { "Back",   { NRFX_GPIOTE_INSTANCE(0), 2, NRF_GPIO_PIN_MAP(1, 2) }, NRF_GPIO_PIN_PULLUP },
     [BUTTON_ID_UP] =
-        { "Up",     { NRFX_GPIOTE_INSTANCE(0), 3, NRF_GPIO_PIN_MAP(0, 28) }, NRF_GPIO_PIN_PULLUP },
+        { "Up",     { NRFX_GPIOTE_INSTANCE(0), 3, NRF_GPIO_PIN_MAP(0, 2) }, NRF_GPIO_PIN_PULLUP },
     [BUTTON_ID_SELECT] =
-        { "Select", { NRFX_GPIOTE_INSTANCE(0), 4, NRF_GPIO_PIN_MAP(0, 29) }, NRF_GPIO_PIN_PULLUP },
+        { "Select", { NRFX_GPIOTE_INSTANCE(0), 4, NRF_GPIO_PIN_MAP(1, 3) }, NRF_GPIO_PIN_PULLUP },
     [BUTTON_ID_DOWN] =
-        { "Down",   { NRFX_GPIOTE_INSTANCE(0), 5, NRF_GPIO_PIN_MAP(1, 2) }, NRF_GPIO_PIN_PULLUP },
+        { "Down",   { NRFX_GPIOTE_INSTANCE(0), 5, NRF_GPIO_PIN_MAP(0, 3) }, NRF_GPIO_PIN_PULLUP },
   },
   .active_high = false,
   .timer = NRFX_TIMER_INSTANCE(1),

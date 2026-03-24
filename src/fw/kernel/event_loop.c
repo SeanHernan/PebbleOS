@@ -99,6 +99,8 @@
 
 #include <bluetooth/reconnect.h>
 
+#include "kernel/util/sleep.h"
+
 #include "FreeRTOS.h"
 #include "task.h"
 
@@ -266,6 +268,7 @@ static NOINLINE void prv_minimal_event_handler(PebbleEvent* e) {
     case PEBBLE_BUTTON_DOWN_EVENT:
     case PEBBLE_BUTTON_UP_EVENT:
       launcher_handle_button_event(e);
+      // psleep(100);
       return;
 
     case PEBBLE_BATTERY_CONNECTION_EVENT: {

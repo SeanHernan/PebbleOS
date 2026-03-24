@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 
+#if !defined(MICRO_FAMILY_NRF5340) // TODO: update to be display defined
 //! @internal
 //! data type that's used to store row data infos in a space-efficient manner
 typedef struct {
@@ -25,6 +26,13 @@ typedef struct {
   uint8_t min_x;
   uint8_t max_x;
 } GBitmapDataRowInfoInternal;
+#else
+typedef struct {
+  uint16_t offset;
+  uint8_t min_x; // will need more space for Sharp LS014B7DD01, updating to 16 bits
+  uint8_t max_x; // will need more space for Sharp LS014B7DD01, updating to 16 bits
+} GBitmapDataRowInfoInternal;
+#endif
 
 // FIXME: PBL-21055 Fix SDK exporter failing to crawl framebuffer headers
 #if !defined(SDK)

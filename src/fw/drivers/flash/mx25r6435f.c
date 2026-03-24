@@ -42,16 +42,10 @@ static QSPIFlashPart QSPI_FLASH_PART = {
             .erase_resume = 0x30,
             .enter_low_power = 0xB9,
             .exit_low_power = 0xAB,
-            // .enter_quad_mode = 0x35,
+
             .reset_enable = 0x66,
             .reset = 0x99,
-            // .qspi_id = 0xAF,
 
-            // .block_lock = 0x36,
-            // .block_lock_status = 0x3C,
-            // .block_unlock_all = 0x98,
-
-            // .write_protection_enable = 0x68,
             .read_protection_status = 0x2B,
 
             .qspi_id = 0x9f,

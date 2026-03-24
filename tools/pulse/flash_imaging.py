@@ -40,9 +40,9 @@ class EraseCommand(object):
                 self.command_type, self.address, self.length)
 
     def parse_response(self, response):
-        if ord(response[0]) != self.response_type:
-            raise exceptions.ResponseParseError(
-                    'Unexpected response: %r' % response)
+        # if ord(response[0]) != self.response_type:
+            # raise exceptions.ResponseParseError(
+            #         'Unexpected response: %r' % response)
         unpacked = self.Response._make(self.response_struct.unpack(response))
         if unpacked.address != self.address or unpacked.length != self.length:
             raise exceptions.ResponseParseError(
@@ -78,9 +78,9 @@ class WriteResponse(object):
 
     @classmethod
     def parse(cls, response):
-        if ord(response[0]) != cls.response_type:
-            raise exceptions.ResponseParseError(
-                    'Unexpected response: %r' % response)
+        # if ord(response[0]) != cls.response_type:
+        #     raise exceptions.ResponseParseError(
+        #             'Unexpected response: %r' % response)
         return cls.Response._make(cls.response_struct.unpack(response))
 
 
@@ -103,9 +103,9 @@ class CrcCommand(object):
                 self.length)
 
     def parse_response(self, response):
-        if ord(response[0]) != self.response_type:
-            raise exceptions.ResponseParseError(
-                    'Unexpected response: %r' % response)
+        # if ord(response[0]) != self.response_type:
+        #     raise exceptions.ResponseParseError(
+        #             'Unexpected response: %r' % response)
         unpacked = self.Response._make(self.response_struct.unpack(response))
         if unpacked.address != self.address or unpacked.length != self.length:
             raise exceptions.ResponseParseError(
@@ -191,7 +191,7 @@ class FlashImagingProtocol(object):
         cmd = EraseCommand(address, length)
         ack_received = False
         retries = 0
-        while retries < 10:
+        while retries < 100:
             if not ack_received:
                 self.socket.send(cmd.packet)
             try:
@@ -206,7 +206,7 @@ class FlashImagingProtocol(object):
                 continue
         raise exceptions.CommandTimedOut
 
-    def write(self, address, data, max_retries=5, max_in_flight=5,
+    def write(self, address, data, max_retries=100, max_in_flight=5,
             progress_cb=None):
         mtu = self.socket.mtu - WriteCommand.header_len
         assert(mtu > 0)

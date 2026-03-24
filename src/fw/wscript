@@ -251,7 +251,7 @@ def _generate_memory_layout(bld):
         # FIXME: The runtime_reserved size could be reduced for diorite
         'diorite': AppRamSize(66 * 1024, 30 * 1024),
         'emery': AppRamSize(130 * 1024, 62 * 1024),
-        'knight': AppRamSize(130 * 1024, 62 * 1024), # TODO update
+        'knight': AppRamSize(130 * 1024, 62 * 1024), # FIXME: review...
     }
     APP_UNSUPPORTED = AppRamSize(0, 0)
 
@@ -321,11 +321,11 @@ def _generate_memory_layout(bld):
     elif bld.is_hollow():
         app_ram_size_2x = APP_RAM_SIZES['aplite']
         app_ram_size_3x = APP_RAM_SIZES['basalt']
-        app_ram_size_4x = APP_RAM_SIZES['emery']
+        app_ram_size_4x = APP_RAM_SIZES['knight']
         # We have 512K of SRAM, last 1K reserved for LCPU IPC
         # FIXME(SF32LB52): due to MPU find_subregions_for_region assuming
         # ARMv7 subregion limitations, we need to reserve 32K!
-        total_ram = (0x20000000, (512 - 32) * 1024)
+        total_ram = (0x20000000, (512-32) * 1024) # FIXME: temporarily removed BT IPC section...
     else:
         bld.fatal("No set of supported SDK platforms defined for this board")
 
@@ -343,6 +343,18 @@ def _generate_memory_layout(bld):
     worker_ram = (ram_end - app_ram_size - worker_ram_size, worker_ram_size)
     kernel_ram_size = total_ram[1] - app_ram_size - worker_ram_size
     kernel_ram = (total_ram[0], kernel_ram_size)
+
+    # print('BING BONG')
+    # print(f'ram_end: {ram_end}')
+    # print(f'all_app_ram_sizes: {all_app_ram_sizes}')
+    # print(f'app_ram_size: {app_ram_size}')
+    # print(f'system_app_segment_size: {system_app_segment_size}')
+    # print(f'app_runtime_size: {app_runtime_size}')
+    # print(f'app_ram: {app_ram}')
+    # print(f'worker_ram_size: {worker_ram_size}')
+    # print(f'worker_ram: {worker_ram}')
+    # print(f'kernel_ram_size: {kernel_ram_size}')
+    # print(f'kernel_ram: {kernel_ram}')
 
     # As a basic sanity check, make sure we're giving the kernel at least 64k.
     if kernel_ram_size < 64 * 1024:

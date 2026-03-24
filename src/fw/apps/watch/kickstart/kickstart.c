@@ -38,6 +38,7 @@
 #define ROBERT_SCREEN_RES (PBL_DISPLAY_WIDTH == 200 && PBL_DISPLAY_HEIGHT == 228)
 #define SNOWY_SCREEN_RES (PBL_DISPLAY_WIDTH == 144 && PBL_DISPLAY_HEIGHT == 168)
 #define SPALDING_SCREEN_RES (PBL_DISPLAY_WIDTH == 180 && PBL_DISPLAY_HEIGHT == 180)
+#define KNIGHT_SCREEN_RES (PBL_DISPLAY_WIDTH == 280 && PBL_DISPLAY_HEIGHT == 280) // TODO: update
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // UI Utils
@@ -298,6 +299,9 @@ static void prv_draw_steps_and_shoe(GContext *ctx, const char *steps_buffer, GFo
 #elif SPALDING_SCREEN_RES
   const GTextAlignment alignment = GTextAlignmentCenter;
   bounds.origin.y += 113; // steps text top offset
+#elif KNIGHT_SCREEN_RES
+  const GTextAlignment alignment = GTextAlignmentCenter;
+  bounds.origin.y += 113; // steps text top offset
 #endif
 
   graphics_context_set_text_color(ctx, color);
@@ -335,6 +339,8 @@ static void prv_draw_time(GContext *ctx, GFont time_font, GFont am_pm_font, GRec
 #elif SNOWY_SCREEN_RES
   bounds.origin.y = screen_is_obstructed ? 4 : 47;
 #elif SPALDING_SCREEN_RES
+  bounds.origin.y = 50;
+#elif KNIGHT_SCREEN_RES
   bounds.origin.y = 50;
 #endif
 
@@ -398,6 +404,8 @@ static void prv_base_layer_update_proc(Layer *layer, GContext *ctx) {
 #elif ROBERT_SCREEN_RES
   const int16_t fill_thickness = screen_is_obstructed ? 5 : 13;
 #elif SPALDING_SCREEN_RES
+  const int16_t fill_thickness = (bounds.size.h - grect_inset(bounds, GEdgeInsets(15)).size.h) / 2;
+  #elif KNIGHT_SCREEN_RES
   const int16_t fill_thickness = (bounds.size.h - grect_inset(bounds, GEdgeInsets(15)).size.h) / 2;
 #endif
 
@@ -566,7 +574,7 @@ T_STATIC void prv_window_load_handler(Window *window) {
   data->steps_font = fonts_get_system_font(FONT_KEY_AGENCY_FB_46_NUMBERS_AM_PM);
   data->time_font = fonts_get_system_font(FONT_KEY_AGENCY_FB_88_NUMBERS_AM_PM);
   data->am_pm_font = fonts_get_system_font(FONT_KEY_AGENCY_FB_88_THIN_NUMBERS_AM_PM);
-#elif SNOWY_SCREEN_RES || SPALDING_SCREEN_RES
+#elif SNOWY_SCREEN_RES || SPALDING_SCREEN_RES || KNIGHT_SCREEN_RES
 #if PBL_RECT
   gbitmap_init_with_resource(&data->shoe_blue_small, RESOURCE_ID_STRIDE_SHOE_BLUE_SMALL);
   gbitmap_init_with_resource(&data->shoe_green_small, RESOURCE_ID_STRIDE_SHOE_GREEN_SMALL);

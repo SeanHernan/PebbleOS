@@ -29,7 +29,7 @@
 #include <stdint.h>
 #include <string.h>
 
-
+#if !defined(MICRO_FAMILY_NRF5340) // TODO: update to be display defined
 typedef struct PACKED FramebufferStatResp {
   uint8_t flags;
   uint8_t width;
@@ -37,6 +37,15 @@ typedef struct PACKED FramebufferStatResp {
   uint8_t bpp;
   uint32_t length;
 } FramebufferStatResp;
+#else
+typedef struct PACKED FramebufferStatResp {
+  uint8_t flags;
+  uint8_t width; // may need more space for Sharp LS014B7DD01, updating to 16 bits
+  uint8_t height; // may need more space for Sharp LS014B7DD01, updating to 16 bits
+  uint8_t bpp;
+  uint32_t length;
+} FramebufferStatResp;
+#endif
 
 static int framebuffer_domain_read(uint8_t *buf, uint32_t address, uint32_t length,
                                         void *context) {

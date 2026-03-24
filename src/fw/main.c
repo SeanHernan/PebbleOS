@@ -121,6 +121,8 @@
 
 #include "nrfx/drivers/include/nrfx_clock.h"
 
+#include "nrfx/hal/nrf_reset.h"
+
 /* here is as good as anywhere else ... */
 const int __attribute__((used)) uxTopUsedPriority = configMAX_PRIORITIES - 1;
 
@@ -215,6 +217,15 @@ int main(void) {
   mbuf_init();
   delay_init();
   periph_config_init();
+
+#if defined(MICRO_FAMILY_NRF5340)
+  // disable SENS_PWR_CTL on Thingy53
+  // TODO: messy, temp fix... clean up
+  const OutputConfig sens_pwr_ctrl = { NRF5_GPIO_RESOURCE_EXISTS, NRF_GPIO_PIN_MAP(0, 31), true };
+  gpio_output_init(&sens_pwr_ctrl, NRF_GPIO_PIN_PULLUP, GPIO_Speed_50MHz);
+  gpio_output_set(&sens_pwr_ctrl, true); // pull up?
+#endif
+
   dbgserial_init();
   pulse_early_init();
   print_splash_screen();
@@ -505,6 +516,14 @@ static NOINLINE void prv_main_task_init(void) {
   // Can't use the compositor framebuffer until the compositor is initialized
   compositor_init();
   kernel_ui_init();
+
+#if defined(MICRO_FAMILY_NRF5340)
+  // zero out the top 1kB of RAM
+  // memset((void *)0x2007F000, 0, 0x400);
+  // tell the network core to wake up
+  // nrf_reset_network_force_off(NRF_RESET_S, false);
+  // psleep(0.003); // sleep 3 ms
+#endif
 
   bt_driver_init();
 

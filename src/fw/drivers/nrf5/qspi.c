@@ -88,7 +88,6 @@ static inline void qspi_clock_div_restore(nrf_clock_hfclk_div_t *dev)
 #endif
 }
 
-// TODO: work out how to cleanly write a single wrapper function, this is getting bloated...
 #if defined(MICRO_FAMILY_NRF5340)
   #define ERRATA_159_WRAPPER(func) \
     nrf_clock_hfclk_div_t clock_state = 0; \
